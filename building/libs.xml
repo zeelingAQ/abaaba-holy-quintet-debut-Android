@@ -8,7 +8,7 @@
 		<git name="lime" url="https://github.com/QQQEB159/lime-8.1.2" />
 
 		<!-- Flixel -->
-		<git name="flixel" url="https://github.com/SadGuyBigHead/cne-flixel" ref="dev" />
+		<git name="flixel" url="https://github.com/SadGuyBigHead/cne-flixel" ref="old" />
 		<git name="flixel-addons" url="https://github.com/CodenameCrew/cne-flixel-addons" ref="old" />
 
 		<!-- Other Libraries -->
