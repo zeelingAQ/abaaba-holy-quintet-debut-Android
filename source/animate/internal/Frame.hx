@@ -49,7 +49,9 @@ class Frame implements IFlxDestroyable
 
 	public function add(element:Element):Void
 	{
-		if (elements.indexOf(element) != -1) return;
+		if (elements.indexOf(element) != -1)
+			return;
+
 		element.parentFrame = this;
 		elements.push(element);
 		setDirty();
@@ -57,7 +59,9 @@ class Frame implements IFlxDestroyable
 
 	public function insert(index:Int, element:Element)
 	{
-		if (elements.indexOf(element) != -1) return;
+		if (elements.indexOf(element) != -1)
+			return;
+
 		element.parentFrame = this;
 		elements.insert(index, element);
 		setDirty();
@@ -65,12 +69,18 @@ class Frame implements IFlxDestroyable
 
 	public function setDirty()
 	{
-		if (_requireBake) _dirty = true;
-		if (_bakedFrames != null) {
+		if (_requireBake)
+		{
+			_dirty = true;
+		}
+
+		if (_bakedFrames != null)
+		{
 			_bakedFrames.dispose();
 			_bakedFrames = null;
 			_bakedIndices = null;
 		}
+
 		if (layer != null && layer.timeline != null)
 			layer.timeline.parent.setSymbolDirty(layer.timeline.name);
 	}
@@ -79,50 +89,73 @@ class Frame implements IFlxDestroyable
 	public function convertToSymbol(fromIndex:Int, toIndex:Int, ?type:ElementType = GRAPHIC):SymbolInstance
 	{
 		var elements = this.elements.splice(fromIndex, toIndex - fromIndex);
+
 		var timeline = new animate.internal.Timeline(null, layer.timeline.parent, "tempSymbol");
 		var layer = new Layer(timeline);
+
 		var frame = new Frame(layer);
-		for (element in elements) frame.add(element);
+		for (element in elements)
+			frame.add(element);
+
 		layer.frames.push(frame);
 		layer.frameIndices.push(0);
+
 		timeline.layers.push(layer);
 		timeline.frameCount = layer.frameCount;
+
 		var item = new SymbolItem(timeline);
 		var instance = item.createInstance(type);
 		insert(fromIndex, instance);
+
 		return instance;
 	}
 
 	public function forEachElement(callback:Element->Void):Void
 	{
-		for (element in this.elements) callback(element);
+		for (element in this.elements)
+			callback(element);
 	}
 
 	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
 		rect ??= FlxRect.get();
 		rect.set();
-		if (elements.length <= 0) {
+
+		if (elements.length <= 0)
+		{
 			(matrix != null) ? rect.set(matrix.tx, matrix.ty, 0, 0) : rect.set(0, 0, 0, 0);
 			return rect;
 		}
+
 		var tmpRect = FlxRect.get();
+
 		rect = elements[0].getBounds(frameIndex, rect, matrix, includeFilters, useCachedBounds);
-		for (i in 1...elements.length) {
+		for (i in 1...elements.length)
+		{
 			tmpRect = elements[i].getBounds(frameIndex, tmpRect, matrix, includeFilters, useCachedBounds);
 			rect = Timeline.expandBounds(rect, tmpRect);
 		}
-		if (this.layer.layerType == CLIPPED && this.layer.parentLayer != null) {
+
+		if (this.layer.layerType == CLIPPED && this.layer.parentLayer != null)
+		{
 			tmpRect.set();
 			var maskerBounds = this.layer.parentLayer.getBounds(frameIndex + this.index, tmpRect, matrix, includeFilters, useCachedBounds);
 			Timeline.maskBounds(rect, maskerBounds);
 		}
+
 		tmpRect.put();
 		return rect;
 	}
 
-	public inline function iterator() return elements.iterator();
-	public inline function keyValueIterator() return elements.keyValueIterator();
+	public inline function iterator()
+	{
+		return elements.iterator();
+	}
+
+	public inline function keyValueIterator()
+	{
+		return elements.keyValueIterator();
+	}
 
 	@:allow(animate.internal.Layer)
 	function _loadJson(frame:FrameJson, parent:FlxAnimateFrames):Void
@@ -133,22 +166,35 @@ class Frame implements IFlxDestroyable
 		this.blend = #if flash animate.internal.filters.Blend.fromInt(frame.B) #else frame.B #end;
 
 		var e = frame.E;
-		if (e != null) {
-			for (element in e) {
+		if (e != null)
+		{
+			for (element in e)
+			{
 				var si = element.SI;
-				if (si != null) {
-					this.elements.push(switch (si.ST) {
-						case "B" | "button": new ButtonInstance(si, parent, this);
-						case "MC" | "movieclip": new MovieClipInstance(si, parent, this);
-						default: new SymbolInstance(si, parent, this);
+				if (si != null)
+				{
+					this.elements.push(switch (si.ST)
+					{
+						case "B" | "button":
+							new ButtonInstance(si, parent, this);
+						case "MC" | "movieclip":
+							new MovieClipInstance(si, parent, this);
+						default:
+							new SymbolInstance(si, parent, this);
 					});
-				} else {
+				}
+				else
+				{
 					var asi = element.ASI;
-					if (asi != null) {
+					if (asi != null)
+					{
 						this.elements.push(new AtlasInstance(asi, parent, this));
-					} else {
+					}
+					else
+					{
 						var tfi = element.TFI;
-						if (tfi != null) {
+						if (tfi != null)
+						{
 							this.elements.push(new TextFieldInstance(tfi, parent, this));
 						}
 					}
@@ -156,10 +202,13 @@ class Frame implements IFlxDestroyable
 			}
 		}
 
-		if (frame.SND != null) {
+		if (frame.SND != null)
+		{
 			final soundPath:String = parent.path + '/LIBRARY/' + frame.SND.N;
+
 			#if (cpp || hl)
-			if (soundPath.endsWith(".wav")) {
+			if (soundPath.endsWith(".wav"))
+			{
 				var bytes = FlxAnimateAssets.getBytes(soundPath);
 				var buffer = lime.media.AudioBuffer.fromBytes(bytes);
 				var openflSound = Sound.fromAudioBuffer(buffer);
@@ -167,6 +216,7 @@ class Frame implements IFlxDestroyable
 				return;
 			}
 			#end
+
 			sound = FlxG.sound.load(soundPath);
 		}
 	}
@@ -182,35 +232,49 @@ class Frame implements IFlxDestroyable
 
 	function _bakeFrame(frameIndex:Int):Void
 	{
-		if (layer.parentLayer == null) {
+		if (layer.parentLayer == null)
+		{
 			_dirty = false;
 			return;
 		}
-		if (_bakedFrames == null) _bakedFrames = new BakedFramesVector(duration);
-		if (_bakedIndices == null) {
+
+		if (_bakedFrames == null)
+			_bakedFrames = new BakedFramesVector(duration);
+
+		if (_bakedIndices == null)
+		{
 			var isSimpleRender:Bool = true;
-			for (element in elements) {
-				if (element is AtlasInstance) continue;
-				if (!element.toSymbolInstance().isSimpleSymbol()) {
+			for (element in elements)
+			{
+				if (element is AtlasInstance)
+					continue;
+
+				if (!element.toSymbolInstance().isSimpleSymbol())
+				{
 					isSimpleRender = false;
 					break;
 				}
 			}
+
 			_bakedIndices = isSimpleRender ? [for (i in 0...duration) 0] : [for (i in 0...duration) i];
 		}
 
-		var safeIndex = frameIndex % _bakedIndices.length;
-		if (safeIndex < 0) safeIndex += _bakedIndices.length;
-		safeIndex = _bakedIndices[safeIndex];
-		if (_bakedFrames[safeIndex] != null) return;
+		frameIndex = _bakedIndices[frameIndex];
+		if (_bakedFrames[frameIndex] != null)
+			return;
 
 		var bakedFrame:Null<AtlasInstance> = FilterRenderer.maskFrame(this, frameIndex + this.index, layer);
-		if (bakedFrame == null) return;
+		if (bakedFrame == null)
+			return;
 
 		bakedFrame.parentFrame = this;
-		_bakedFrames[safeIndex] = bakedFrame;
-		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty) bakedFrame.visible = false;
-		if (_dirty && _bakedFrames.isFull()) _dirty = false;
+		_bakedFrames[frameIndex] = bakedFrame;
+
+		if (bakedFrame.frame == null || bakedFrame.frame.frame.isEmpty)
+			bakedFrame.visible = false;
+
+		if (_dirty && _bakedFrames.isFull())
+			_dirty = false;
 	}
 
 	@:allow(animate.internal.elements.SymbolInstance)
@@ -219,32 +283,39 @@ class Frame implements IFlxDestroyable
 	@:allow(animate.internal.elements.AtlasInstance)
 	private static var __isDirtyCall:Bool = false;
 
-	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool, ?shader:FlxShader):Void
+	public function draw(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
+			?shader:FlxShader):Void
 	{
 		var blend = Blend.resolve(this.blend, blend);
-		
-		// 原版数学：377 - 377 = 0，完美相对帧
-		var safeFrame = currentFrame - this.index;
-		if (safeFrame < 0) safeFrame = 0;
-		var wrappedFrame = safeFrame % duration;
 
-		if (_dirty && layer != null) _bakeFrame(wrappedFrame);
+		if (_dirty)
+		{
+			if (layer != null)
+				_bakeFrame(currentFrame - this.index);
+		}
 
-		if (_bakedFrames != null) {
-			var bakedFrame = _bakedFrames[_bakedIndices[wrappedFrame]];
-			if (bakedFrame != null) {
-				if (bakedFrame.visible) bakedFrame.draw(camera, currentFrame, this.index, parentMatrix, transform, blend, antialiasing, shader);
+		if (_bakedFrames != null)
+		{
+			var bakedFrame = _bakedFrames[_bakedIndices[currentFrame - this.index]];
+			if (bakedFrame != null)
+			{
+				if (bakedFrame.visible)
+					bakedFrame.draw(camera, currentFrame, this.index, parentMatrix, transform, blend, antialiasing, shader);
 				return;
 			}
 		}
+
 		_drawElements(camera, currentFrame, parentMatrix, transform, blend, antialiasing, shader);
 	}
 
 	@:allow(animate.internal.FilterRenderer)
-	inline function _drawElements(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool, ?shader:FlxShader)
+	inline function _drawElements(camera:FlxCamera, currentFrame:Int, parentMatrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?antialiasing:Bool,
+			?shader:FlxShader)
 	{
-		for (element in elements) {
-			if (element.visible) element.draw(camera, currentFrame, this.index, parentMatrix, transform, blend, antialiasing, shader);
+		for (element in elements)
+		{
+			if (element.visible)
+				element.draw(camera, currentFrame, this.index, parentMatrix, transform, blend, antialiasing, shader);
 		}
 	}
 
@@ -253,46 +324,70 @@ class Frame implements IFlxDestroyable
 		elements = FlxDestroyUtil.destroyArray(elements);
 		sound = FlxDestroyUtil.destroy(sound);
 		layer = null;
-		if (_bakedFrames != null) {
+
+		if (_bakedFrames != null)
+		{
 			_bakedFrames.dispose();
 			_bakedFrames = null;
 		}
 	}
 
-	public function toString():String return '{name: "$name", index: $index, duration: $duration}';
+	public function toString():String
+	{
+		return '{name: "$name", index: $index, duration: $duration}';
+	}
 }
 
 extern abstract BakedFramesVector(Array<AtlasInstance>)
 {
-	public inline function new(length:Int) {
+	public inline function new(length:Int)
+	{
 		#if cpp
 		this = cpp.NativeArray.create(length);
 		#else
 		this = [];
-		for (i in 0...length) this.push(null);
+		for (i in 0...length)
+			this.push(null);
 		#end
 	}
-	public inline function isFull():Bool return this.indexOf(null) == -1;
-	public inline function setNull(index:Int):Void {
+
+	public inline function isFull():Bool
+	{
+		return this.indexOf(null) == -1;
+	}
+
+	public inline function setNull(index:Int):Void
+	{
 		var frame = get(index);
-		if (frame == null) return;
-		if (frame.frame != null) {
+		if (frame == null)
+			return;
+
+		if (frame.frame != null)
+		{
 			frame.frame.parent = FlxDestroyUtil.destroy(frame.frame.parent);
 			frame.frame = FlxDestroyUtil.destroy(frame.frame);
 		}
+
 		set(index, FlxDestroyUtil.destroy(frame));
 	}
-	public inline function dispose():Void {
-		for (i in 0...this.length) setNull(i);
+
+	public inline function dispose():Void
+	{
+		for (i in 0...this.length)
+			setNull(i);
 	}
-	public inline function findFrame(index:Int):Null<AtlasInstance> {
+
+	public inline function findFrame(index:Int):Null<AtlasInstance>
+	{
 		final max:Int = this.length - 1;
 		final lowerBound:Int = (index < 0) ? 0 : index;
 		return get((lowerBound > max) ? max : lowerBound);
 	}
+
 	@:arrayAccess
 	public inline function get(index:Int):AtlasInstance
 		return #if cpp cpp.NativeArray.unsafeGet(this, index) #else this[index] #end;
+
 	@:arrayAccess
 	public inline function set(index:Int, value:AtlasInstance):AtlasInstance
 		return #if cpp cpp.NativeArray.unsafeSet(this, index, value) #else this[index] = value #end;

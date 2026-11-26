@@ -36,7 +36,6 @@ import animate.internal.elements.AtlasInstance.BakedInstance;
 import flixel.util.FlxColor;
 #end
 
-// TODO: make renderer use textures instead of full bitmaps
 #if !flash
 @:access(flixel.FlxCamera)
 @:access(flixel.graphics.frames.FlxFrame)
@@ -63,26 +62,16 @@ class FilterRenderer
 		if (masker == null || frame.elements.length <= 0)
 			return null;
 
-		if (Frame.debugTrace && currentFrame > 200) {
-			trace("[4. Mask] Searching mask frame at: " + currentFrame);
-		}
-
 		var maskerFrame = masker.getFrameAtIndex(currentFrame);
-		
-		if (maskerFrame == null && masker.frameCount > 0)
-		{
-			maskerFrame = masker.getFrameAtIndex(currentFrame % masker.frameCount);
-		}
-		
 		if (maskerFrame == null || maskerFrame.elements.length <= 0)
 			return null;
 
 		var maskerBounds = maskerFrame.getBounds(currentFrame - maskerFrame.index);
-		if (maskerBounds.isEmpty) // Has no masker, render as normal
+		if (maskerBounds.isEmpty)
 			return null;
 
 		var maskedBounds = frame.getBounds(currentFrame - frame.index);
-		if (maskedBounds.isEmpty) // Empty instance, nothing to add here
+		if (maskedBounds.isEmpty)
 			return new AtlasInstance();
 
 		var masked:Null<BitmapData> = renderToBitmap((cam, mat) ->
@@ -93,7 +82,6 @@ class FilterRenderer
 				cam.canvas.graphics.__bounds = maskedBounds.copyToFlash(new Rectangle());
 		});
 
-		// Nothing was rendered on the mask
 		if (masked == null)
 			return new AtlasInstance();
 
@@ -109,7 +97,6 @@ class FilterRenderer
 		var intersectWidth = Math.min(maskerBounds.right, maskedBounds.right) - intersectX;
 		var intersectHeight = Math.min(maskerBounds.bottom, maskedBounds.bottom) - intersectY;
 
-		// copy masker channel
 		var rect = Rectangle.__pool.get();
 		rect.setTo(intersectX - maskerBounds.x, intersectY - maskerBounds.y, intersectWidth, intersectHeight);
 
@@ -128,13 +115,11 @@ class FilterRenderer
 
 		Rectangle.__pool.release(rect);
 
-		// create result masked atlas instance
 		var element = new BakedInstance();
 		element.frame = frame;
 		element.blend = blend;
 		element.matrix = new FlxMatrix(1, 0, 0, 1, intersectX, intersectY);
 
-		// we wont need to keep the masker anymore
 		FlxDestroyUtil.dispose(masker);
 
 		return element;
@@ -238,7 +223,6 @@ class FilterRenderer
 						copyBlur.blurY /= scale.y;
 						scaledFilters.push(copyBlur);
 
-						// value... fresh from my ass
 						final qualityFactor:Float = (quality == FilterQuality.HIGH) ? 1.25 : quality.getQualityFactor();
 						blur.blurX = Math.pow(blur.blurX, 0.85) / (scale.x * qualityFactor);
 						blur.blurY = Math.pow(blur.blurY, 0.85) / (scale.y * qualityFactor);
@@ -266,7 +250,6 @@ class FilterRenderer
 		frame.parent.destroyOnNoUse = false;
 		filterFrame(frame, filters);
 
-		// Small offset to account for pixel-innacuracies
 		var xOffset:Float = ((resultFilteredBounds.width * scale.x) - filteredBounds.width) / 2;
 		var yOffset:Float = ((resultFilteredBounds.height * scale.y) - filteredBounds.height) / 2;
 
@@ -290,18 +273,10 @@ class FilterRenderer
 		filterFrame.parent.bitmap = applyFilter(filterFrame.parent.bitmap, frame.parent.bitmap, filters, point);
 		filterFrame.frame = FlxRect.get(0, 0, filterFrame.parent.bitmap.width, filterFrame.parent.bitmap.height);
 
-		// Remove & replace the original bitmap
 		FlxDestroyUtil.dispose(frame.parent.bitmap);
 		filterFrame.copyTo(frame);
 	}
 
-	/**
-	 * Generates a new bitmap with filters from an input bitmap.
-	 * @param target Optional, the bitmap data to use for output
-	 * @param bitmap The input bitmap to use for filtering
-	 * @param filters Array of the filters to apply to the bitmap
-	 * @param point Optional, point used to offset the final rendered output
-	 */
 	public static function applyFilter(?target:BitmapData, bitmap:BitmapData, filters:Array<BitmapFilter>, ?point:Point):BitmapData
 	{
 		if (target == null)
@@ -363,9 +338,7 @@ class FilterRenderer
 
 		bmp.__renderTransform.identity();
 		if (point != null)
-		{
 			bmp.__renderTransform.translate(point.x, point.y);
-		}
 
 		renderer.setShader(renderer.__defaultShader);
 		renderer.__setRenderTarget(bitmap);
@@ -398,7 +371,7 @@ class FilterRenderer
 		}
 		#end
 
-		if (bitmap2 != bmp) // in case the filter reuses the bitmap due to not needing a second one
+		if (bitmap2 != bmp)
 			FlxDestroyUtil.dispose(bitmap2);
 
 		FlxDestroyUtil.dispose(bitmap3);
@@ -448,9 +421,6 @@ class FilterRenderer
 		}
 		else
 		{
-			// TODO: this shit really confuses me, i gotta look into it
-			// I think the bitmapdata is still in the gpu so it isnt accesible in the cpu?
-			// But it doesnt happen for the color matrix filter, so... idk
 			bitmap = bitmap.clone();
 			bitmap.applyFilter(bitmap, bitmap.rect, point, filter);
 		}
@@ -488,8 +458,6 @@ class FilterRenderer
 		return renderer;
 	}
 	#else
-	// Basic Flash filter baking impl
-	// NOTE: this is NOWHERE near done lol, still needs some work, its not really a priority for me though
 	public static function bakeFilters(movieclip:MovieClipInstance, frameIndex:Int, filters:Array<BitmapFilter>, scale:FlxPoint,
 			quality:FilterQuality = MEDIUM):AtlasInstance
 	{
@@ -533,11 +501,11 @@ class FilterRenderer
 			return null;
 
 		var maskerBounds = maskerFrame.getBounds(currentFrame - maskerFrame.index);
-		if (maskerBounds.isEmpty) // Has no masker, render as normal
+		if (maskerBounds.isEmpty)
 			return null;
 
 		var maskedBounds = frame.getBounds(currentFrame - frame.index);
-		if (maskedBounds.isEmpty) // Empty instance, nothing to add here
+		if (maskedBounds.isEmpty)
 			return new AtlasInstance();
 
 		var masker = getBitmap((cam, mat) -> maskerFrame._drawElements(cam, currentFrame, mat, null, NORMAL, false, null), maskerBounds);
@@ -656,17 +624,6 @@ class FilterRenderer
 				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + dropShadow.blurX);
 				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + dropShadow.blurX);
 			}
-			#if flash
-			else if (filter is flash.filters.GradientGlowFilter)
-			{
-				var gradientGlow:flash.filters.GradientGlowFilter = cast filter;
-				var __offsetX = Std.int(gradientGlow.distance * FlxMath.fastCos(gradientGlow.angle * Math.PI / 180));
-				var __offsetY = Std.int(gradientGlow.distance * FlxMath.fastSin(gradientGlow.angle * Math.PI / 180));
-				__topExtension = Math.ceil((__offsetY < 0 ? -__offsetY : 0) + gradientGlow.blurY);
-				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + gradientGlow.blurY);
-				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + gradientGlow.blurX);
-				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + gradientGlow.blurX);
-			}
 			#else
 			else
 			{
@@ -711,7 +668,6 @@ class CamPool extends FlxCamera implements IFlxPooled
 		pixelPerfectRender = true;
 	}
 
-	// TODO: use this as a replacement of Frame.__isDirtyCall
 	public static function getForBounds(rect:FlxRect)
 	{
 		var cam = get();

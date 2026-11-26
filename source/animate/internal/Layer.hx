@@ -16,7 +16,7 @@ class Layer implements IFlxDestroyable
 	public var layerType:LayerType;
 	public var parentLayer:Null<Layer>;
 	
-	public var startIndex:Int = 0; // 【新增】记录该图层绝对起始帧
+	public var startIndex:Int = 0; 
 
 	var frameIndices:Null<Array<Int>>;
 
@@ -32,8 +32,10 @@ class Layer implements IFlxDestroyable
 
 	public function forEachFrame(callback:Frame->Void)
 	{
-		if (frames != null) {
-			for (frame in frames) callback(frame);
+		if (frames != null)
+		{
+			for (frame in frames)
+				callback(frame);
 		}
 	}
 
@@ -41,10 +43,11 @@ class Layer implements IFlxDestroyable
 	{
 		index = FlxMath.maxInt(index, 0);
 		
-		// 【底层修复】传入 377 时，减去起始 377 变 0，不越界
+		// 【关键】这里把绝对帧号减去偏移量，如 296 - 296 = 0
 		index = FlxMath.maxInt(index - startIndex, 0);
 		
-		if (index > (frameCount - 1)) return null;
+		if (index > (frameCount - 1))
+			return null;
 
 		var frameIndex = frameIndices[index];
 		return frames[frameIndex];
@@ -53,9 +56,12 @@ class Layer implements IFlxDestroyable
 	public function setKeyframe(index:Int)
 	{
 		var lastFrame = getFrameAtIndex(index);
-		if (lastFrame == null || lastFrame.index == index) return;
+		if (lastFrame == null || lastFrame.index == index)
+			return;
+
 		setBlankKeyframe(index);
 		var keyframe = getFrameAtIndex(index);
+
 		keyframe.elements = lastFrame.elements.copy();
 		keyframe.name = lastFrame.name;
 	}
@@ -63,34 +69,51 @@ class Layer implements IFlxDestroyable
 	public function setBlankKeyframe(index:Int)
 	{
 		var lastFrame = getFrameAtIndex(index);
+
 		var startIndex = lastFrame.index;
 		var startDuration = lastFrame.duration;
+
 		var keyframe = new Frame(this);
 		keyframe.index = index;
 		keyframe.duration = startDuration - (index - startIndex);
+
 		frames.insert(frames.indexOf(lastFrame) + 1, keyframe);
-		for (i in 0...keyframe.duration) frameIndices[index + i] = frames.length - 1;
+		for (i in 0...keyframe.duration)
+			frameIndices[index + i] = frames.length - 1;
 	}
 
 	public function getBounds(frameIndex:Int, ?rect:FlxRect, ?matrix:FlxMatrix, ?includeFilters:Bool = true, ?useCachedBounds:Bool = false):FlxRect
 	{
 		rect ??= FlxRect.get();
+
 		var frame = getFrameAtIndex(frameIndex);
-		if (frame != null) return frame.getBounds((frameIndex - frame.index), rect, matrix, includeFilters, useCachedBounds);
+		if (frame != null)
+			return frame.getBounds((frameIndex - frame.index), rect, matrix, includeFilters, useCachedBounds);
+
 		Timeline.applyMatrixToRect(rect, matrix);
+
 		return rect;
 	}
 
-	public inline function iterator() return frames.iterator();
-	public inline function keyValueIterator() return frames.keyValueIterator();
+	public inline function iterator()
+	{
+		return frames.iterator();
+	}
+
+	public inline function keyValueIterator()
+	{
+		return frames.keyValueIterator();
+	}
 
 	@:allow(animate.internal.Timeline)
 	function _loadJson(layer:LayerJson, parent:FlxAnimateFrames, ?layerIndex:Int, ?layers:Array<Layer>):Void
 	{
 		this.name = layer.LN;
 		
-		// 【新增】解析 JSON 时提取绝对偏移
-		if (layer.FR != null && layer.FR.length > 0) this.startIndex = layer.FR[0].I;
+		if (layer.FR != null && layer.FR.length > 0)
+		{
+			this.startIndex = layer.FR[0].I;
+		}
 
 		var clippedBy:Null<String> = layer.Clpb;
 		var isMasked:Bool = clippedBy != null;
@@ -100,27 +123,38 @@ class Layer implements IFlxDestroyable
 			var i = layerIndex - 1;
 			var foundLayer:Bool = false;
 			this.layerType = CLIPPED;
+
 			while (i >= 0)
 			{
 				var aboveLayer = layers[i--];
 				if (aboveLayer != null && aboveLayer.name == clippedBy && aboveLayer.layerType == CLIPPER)
 				{
-					parentLayer = aboveLayer; foundLayer = true; break;
+					parentLayer = aboveLayer;
+					foundLayer = true;
+					break;
 				}
 			}
-			if (!foundLayer) { parentLayer = null; isMasked = false; visible = false; }
+
+			if (!foundLayer)
+			{
+				parentLayer = null;
+				isMasked = false;
+				visible = false;
+			}
 		}
 		else
 		{
 			final type:Null<String> = layer.LT;
-			this.layerType = type != null ? switch (type) {
+			this.layerType = type != null ? switch (type)
+			{
 				case "Clp" | "Clipper": CLIPPER;
 				case "Fld" | "Folder": FOLDER;
 				default: NORMAL;
 			} : NORMAL;
 		}
 
-		if (this.layerType == CLIPPER) visible = false;
+		if (this.layerType == CLIPPER)
+			visible = false;
 
 		if (this.layerType != FOLDER)
 		{
@@ -129,24 +163,33 @@ class Layer implements IFlxDestroyable
 				var frame = new Frame(this);
 				frame._loadJson(frameJson, parent);
 				frames.push(frame);
-				for (_ in 0...frame.duration) frameIndices.push(i);
+
+				for (_ in 0...frame.duration)
+					frameIndices.push(i);
 			}
 		}
 
-		if (!isMasked) return;
+		if (!isMasked)
+			return;
 
 		var _cacheOnLoad:Bool = false;
 		@:privateAccess {
-			if (parent != null && parent._settings != null) _cacheOnLoad = parent._settings.cacheOnLoad ?? false;
+			if (parent != null && parent._settings != null)
+				_cacheOnLoad = parent._settings.cacheOnLoad ?? false;
 		}
 
 		for (frame in frames)
 		{
-			if (frame.elements.length <= 0) continue;
+			if (frame.elements.length <= 0)
+				continue;
+
 			frame._dirty = true;
 			frame._requireBake = true;
-			if (_cacheOnLoad) {
-				for (i in 0...frame.duration) frame._bakeFrame(i);
+
+			if (_cacheOnLoad)
+			{
+				for (i in 0...frame.duration)
+					frame._bakeFrame(i);
 			}
 		}
 	}
@@ -154,12 +197,26 @@ class Layer implements IFlxDestroyable
 	public function destroy():Void
 	{
 		parentLayer = null;
-		if (frames != null) { for (frame in frames) frame.destroy(); }
+
+		if (frames != null)
+		{
+			for (frame in frames)
+				frame.destroy();
+		}
+
 		frames = null;
 		frameIndices = null;
 	}
 
-	inline function get_frameCount():Int return frameIndices.length;
+	inline function get_frameCount():Int
+	{
+		return frameIndices.length;
+	}
+
+	public function toString():String
+	{
+		return '{name: "$name", frameCount: $frameCount, layerType: $layerType}';
+	}
 }
 
 enum abstract LayerType(Int) to Int
@@ -168,4 +225,15 @@ enum abstract LayerType(Int) to Int
 	var CLIPPER;
 	var CLIPPED;
 	var FOLDER;
+
+	public function toString():String
+	{
+		return switch (cast this : LayerType)
+		{
+			case CLIPPER: "clipper";
+			case CLIPPED: "clipped";
+			case FOLDER: "folder";
+			case NORMAL: "normal";
+		}
+	}
 }
