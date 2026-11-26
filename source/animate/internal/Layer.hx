@@ -43,7 +43,7 @@ class Layer implements IFlxDestroyable
 	{
 		index = FlxMath.maxInt(index, 0);
 		
-		// 【关键】这里把绝对帧号减去偏移量，如 296 - 296 = 0
+		// 【PE 逻辑修复】减去图层起始偏移量，确保 296 变成 0
 		index = FlxMath.maxInt(index - startIndex, 0);
 		
 		if (index > (frameCount - 1))
