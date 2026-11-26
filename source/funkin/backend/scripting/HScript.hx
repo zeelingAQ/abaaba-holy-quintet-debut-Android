@@ -64,12 +64,14 @@ class HScript extends Script {
 		return this;
 	}
 
-	private function importFailedCallback(cl:Array<String>, ?asName:String):Bool {
+	// 【已修复】增加了 ?param:Bool 参数，以匹配新版 hscript 库的接口要求，解决 GitHub Actions 中的编译报错
+	private function importFailedCallback(cl:Array<String>, ?asName:String, ?param:Bool):Bool {
 		if(_importFailedCallback(cl, "source/") || _importFailedCallback(cl, "")) {
 			return true;
 		}
 		return false;
 	}
+	
 	private function _importFailedCallback(cl:Array<String>, prefix:String):Bool {
 		var assetsPath = 'assets/$prefix${cl.join("/")}';
 		for(hxExt in ["hx", "hscript", "hsc", "hxs"]) {
