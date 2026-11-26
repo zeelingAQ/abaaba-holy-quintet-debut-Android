@@ -16,7 +16,7 @@ jobs:
       - name: Setting up Haxe
         uses: ShadowEngineTeam/setup-haxe@main
         with:
-          haxe-version: 4.3.8
+          haxe-version: 4.3.7
       - name: Restore existing build cache for faster compilation
         uses: actions/cache@v4.2.3
         with:
