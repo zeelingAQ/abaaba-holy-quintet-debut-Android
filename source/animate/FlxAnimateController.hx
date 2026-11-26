@@ -1,8 +1,8 @@
 package animate;
 
 import animate.internal.Timeline;
-import flixel.FlxG;
 import animate.internal.Frame;
+import flixel.FlxG;
 import flixel.animation.FlxAnimation;
 import flixel.animation.FlxAnimationController;
 import flixel.graphics.frames.FlxFrame;
@@ -284,7 +284,8 @@ class FlxAnimateController extends FlxAnimationController
 				if (Frame.debugTrace && frame > 200) 
 					trace("[1. Controller] Received frame: " + frame + " | numFrames: " + numFrames);
 				
-				frame = frame % numFrames;
+				if (frame < 0) frame = 0;
+				if (frame >= curAnim.timeline.frameCount) frame = curAnim.timeline.frameCount - 1;
 				
 				if (Frame.debugTrace && frame < 5) 
 					trace("[1. Controller] Frame after modulo: " + frame);
