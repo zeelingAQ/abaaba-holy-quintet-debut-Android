@@ -338,7 +338,9 @@ class FilterRenderer
 
 		bmp.__renderTransform.identity();
 		if (point != null)
+		{
 			bmp.__renderTransform.translate(point.x, point.y);
+		}
 
 		renderer.setShader(renderer.__defaultShader);
 		renderer.__setRenderTarget(bitmap);
