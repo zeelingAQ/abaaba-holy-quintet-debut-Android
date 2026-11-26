@@ -280,7 +280,13 @@ class FlxAnimateController extends FlxAnimationController
 			final numFrames = #if (flixel >= "5.4.0") numFrames #else curAnim.timeline.frameCount #end;
 			if (numFrames > 0)
 			{
+				if (Frame.debugTrace && frame > 200) 
+					trace("[1. Controller] Received frame: " + frame + " | numFrames: " + numFrames);
+				
 				frame = frame % numFrames;
+				
+				if (Frame.debugTrace && frame < 5) 
+					trace("[1. Controller] Frame after modulo: " + frame);
 
 				_animate.timeline = curAnim.timeline;
 				_animate.timeline.currentFrame = frame;

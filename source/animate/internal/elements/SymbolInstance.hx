@@ -97,6 +97,10 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 	 */
 	public function getFrameIndex(index:Int, frameIndex:Int = 0):Int
 	{
+		if (Frame.debugTrace && (index > 200 || frameIndex > 200)) {
+			trace("[3. Symbol] " + libraryItem.name + " | ParentFramePassed: " + index + " | KeyframeOffset: " + frameIndex);
+		}
+
 		var frameIndex = firstFrame + (index - frameIndex);
 		var frameCount = libraryItem.timeline.frameCount;
 

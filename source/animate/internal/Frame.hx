@@ -30,6 +30,7 @@ import flixel.system.FlxSound;
 @:allow(animate.internal.Layer)
 class Frame implements IFlxDestroyable
 {
+	public static var debugTrace:Bool = false;
 	public var layer(default, null):Null<Layer>;
 	public var elements(default, null):Array<Element>;
 	public var index:Int;
@@ -334,6 +335,10 @@ class Frame implements IFlxDestroyable
 			?shader:FlxShader):Void
 	{
 		var blend = Blend.resolve(this.blend, blend);
+
+		if (debugTrace && (currentFrame > 200 || this.index > 200)) {
+			trace("[2. Timeline] CurrentFrame: " + currentFrame + " | KeyframeIndex(Absolute): " + this.index + " | Diff: " + (currentFrame - this.index));
+		}
 
 		if (_dirty)
 		{

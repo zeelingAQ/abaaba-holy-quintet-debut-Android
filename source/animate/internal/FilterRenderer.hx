@@ -63,6 +63,10 @@ class FilterRenderer
 		if (masker == null || frame.elements.length <= 0)
 			return null;
 
+		if (Frame.debugTrace && currentFrame > 200) {
+			trace("[4. Mask] Searching mask frame at: " + currentFrame);
+		}
+
 		var maskerFrame = masker.getFrameAtIndex(currentFrame);
 		
 		if (maskerFrame == null && masker.frameCount > 0)
