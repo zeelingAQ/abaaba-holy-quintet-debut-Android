@@ -373,7 +373,7 @@ class FilterRenderer
 		}
 		#end
 
-		if (bitmap2 != bmp)
+		if (bitmap2 != bmp) // in case the filter reuses the bitmap due to not needing a second one
 			FlxDestroyUtil.dispose(bitmap2);
 
 		FlxDestroyUtil.dispose(bitmap3);
@@ -625,6 +625,17 @@ class FilterRenderer
 				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + dropShadow.blurY);
 				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + dropShadow.blurX);
 				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + dropShadow.blurX);
+			}
+			#if flash
+			else if (filter is flash.filters.GradientGlowFilter)
+			{
+				var gradientGlow:flash.filters.GradientGlowFilter = cast filter;
+				var __offsetX = Std.int(gradientGlow.distance * FlxMath.fastCos(gradientGlow.angle * Math.PI / 180));
+				var __offsetY = Std.int(gradientGlow.distance * FlxMath.fastSin(gradientGlow.angle * Math.PI / 180));
+				__topExtension = Math.ceil((__offsetY < 0 ? -__offsetY : 0) + gradientGlow.blurY);
+				__bottomExtension = Math.ceil((__offsetY > 0 ? __offsetY : 0) + gradientGlow.blurY);
+				__leftExtension = Math.ceil((__offsetX < 0 ? -__offsetX : 0) + gradientGlow.blurX);
+				__rightExtension = Math.ceil((__offsetX > 0 ? __offsetX : 0) + gradientGlow.blurX);
 			}
 			#else
 			else
