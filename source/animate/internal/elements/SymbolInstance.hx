@@ -39,9 +39,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 		this.libraryItem = parent.getSymbol(data.SN);
 		this.matrix = data.MX.toMatrix();
-		// FF 是符号时间轴上的绝对帧号，符号内部已经归一化，这里一起减掉起点
-		var symbolStart:Int = (libraryItem != null) ? libraryItem.timeline.startIndex : 0;
-		this.firstFrame = FlxMath.maxInt(data.FF - symbolStart, 0);
+		this.firstFrame = data.FF;
 		this.isColored = false;
 
 		this.loopType = switch (data.LP)
@@ -101,10 +99,14 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			case LoopType.LOOP:
 				frameIndex = FlxMath.wrap(frameIndex, 0, frameCount - 1);
 			case LoopType.PLAY_ONCE:
-				frameIndex = FlxMath.minInt(frameIndex, frameCount - 1);
+				// [oot fix] 原来是 minInt，会把“只播一次”的符号钳死在末帧
+				frameIndex = FlxMath.wrap(frameIndex, 0, frameCount - 1);
 			case LoopType.SINGLE_FRAME:
 				frameIndex = firstFrame;
 		}
+
+		if (frameCount > 90 && index > 250)
+			animate.OotLog.log('[SI] ' + symbolName + ' idx=' + index + ' key=' + frameIndex + '/' + frameCount);
 
 		return frameIndex;
 	}

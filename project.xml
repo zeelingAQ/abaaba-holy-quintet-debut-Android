@@ -248,7 +248,7 @@
 	<haxedef name="hscriptPos" /> <!-- for logging -->
 
 	<!-- EXPERMENTAL FEATURES -->
-	<haxedef name="EXPERIMENTAL_FLXGRAPHIC_DESTROY_FIX" />
+	<!-- <haxedef name="EXPERIMENTAL_FLXGRAPHIC_DESTROY_FIX" /> -->
 	
 	<!-- _________________________________ Mobile stuff _______________________________ -->
 
