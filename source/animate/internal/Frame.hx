@@ -315,7 +315,14 @@ class Frame implements IFlxDestroyable
 		for (element in elements)
 		{
 			if (element.visible)
-				element.draw(camera, currentFrame, this.index, parentMatrix, transform, blend, antialiasing, shader);
+			{
+				// 【oot-fix v5】一律传「相对关键帧起点的偏移」，不传绝对帧号：
+				// 子符号一律从 FF + (当前帧 - 关键帧起点) 开始推进，
+				// 与 PE(flxanimate 4.0) 的语义一致，永不因图层起始偏移/帧号空间不一致而退回 FF。
+				var offset:Int = currentFrame - this.index;
+				if (offset < 0) offset = 0;
+				element.draw(camera, offset, 0, parentMatrix, transform, blend, antialiasing, shader);
+			}
 		}
 	}
 
