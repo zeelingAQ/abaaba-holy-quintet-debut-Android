@@ -19,6 +19,14 @@ import flixel.text.FlxTextBorderStyle;
 import ui.achievement.AchievementUnlockNoticeUI;
 import funkin.backend.utils.HttpUtil;
 
+// 【调试期开关】true = 开发者模式一直开着，不用每次手动开；上线前改成 false 即可
+var FORCE_DEV_MODE:Bool = true;
+var _devModeNotified:Bool = false;
+
+// 【自动打歌】true = 一进歌就自动开 botplay，不用再按 B
+var FORCE_BOTPLAY:Bool = true;
+var _botAppliedTo:Dynamic = null;
+
 var initData:Bool = false;
 public static var achievementData:Map<String, Dynamic> = [];
 public static var gauntletModsData:Map<String, Dynamic> = [];
@@ -245,7 +253,19 @@ function postStateSwitch()
 		});
 	}
 
-	Options.devMode = false;
+	// 【调试期】原来这里每次切 state 都会把开发者模式关掉，现在改成常开
+	if (FORCE_DEV_MODE)
+	{
+		Options.devMode = true;
+		FlxG.save.data.devMode = true; // 顺手写进存档，重开游戏也是开的
+		if (!_devModeNotified)
+		{
+			_devModeNotified = true;
+			trace('[DEV] 开发者模式已强制常开（FORCE_DEV_MODE = true）');
+		}
+	}
+	else
+		Options.devMode = false;
 
 	globalCam = new FlxCamera();
 	FlxG.cameras.add(globalCam);
@@ -255,7 +275,7 @@ function postStateSwitch()
 	{
 		devText = new FlxText(0, 850, FlxG.width, 'Development\nBuild');
 		devText.setFormat(Paths.font("shingo.otf"), 72, FlxColor.WHITE, FlxTextAlign.CENTER);
-		devText.alpha = 0.05;
+		devText.alpha = 0.10;
 		FlxG.state.add(devText).cameras = [globalCam];
 		devText.screenCenter();
 	}
@@ -281,6 +301,17 @@ function update(elapsed:Float)
 {
 	FlxG.cameras.remove(globalCam, false);
 	FlxG.cameras.add(globalCam, false);
+
+	// 【自动打歌】每进入一首歌（PlayState 换了实例）就把 botplay 打开一次
+	if (FORCE_BOTPLAY && PlayState.instance != null && _botAppliedTo != PlayState.instance)
+	{
+		_botAppliedTo = PlayState.instance;
+		if (PlayState.instance.player != null)
+			PlayState.instance.player.cpu = true;
+		else if (PlayState.instance.cpu != null)
+			PlayState.instance.cpu.cpu = true;
+		trace('[DEV] botplay 已自动开启');
+	}
 
 	if (Options.devMode)
 	{
