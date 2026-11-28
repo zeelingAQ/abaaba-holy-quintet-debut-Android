@@ -41,11 +41,9 @@ class Layer implements IFlxDestroyable
 
 	public function getFrameAtIndex(index:Int):Null<Frame>
 	{
+		// 帧号在加载时已经归一化成 0 基，这里直接用（不要再减 startIndex，否则每帧都会落到第 0 帧）
 		index = FlxMath.maxInt(index, 0);
-		
-		// 【PE 逻辑修复】减去图层起始偏移量，确保 296 变成 0
-		index = FlxMath.maxInt(index - startIndex, 0);
-		
+
 		if (index > (frameCount - 1))
 			return null;
 
@@ -162,6 +160,8 @@ class Layer implements IFlxDestroyable
 			{
 				var frame = new Frame(this);
 				frame._loadJson(frameJson, parent);
+				// 【归一化】Adobe 导出的 I 可能是 296、377 这种绝对帧号，统一减掉图层起点，对齐 PE 的 0 基播放
+				frame.index -= this.startIndex;
 				frames.push(frame);
 
 				for (_ in 0...frame.duration)

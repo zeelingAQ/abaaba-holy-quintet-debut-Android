@@ -17,6 +17,9 @@ import flixel.util.FlxDestroyUtil;
 import haxe.Json;
 import haxe.ds.Vector;
 import haxe.io.Path;
+#if (flixel < "5.9.0")
+import openfl.utils.AssetType; // 文件里的 TEXT / IMAGE / BINARY 就是它的构造器
+#end
 
 using StringTools;
 
@@ -254,7 +257,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		if (FlxAnimateAssets.exists(animate + "/Animation.json", TEXT))
 			return _fromAnimatePath(animate, key, settings);
 
-		return _fromAnimateInput(animate, spritemaps, metadata, key, settings);
+		return _fromAnimateInput(animate, spritemaps, metadata, key, true, null, settings);
 	}
 
 	static function getTextFromPath(path:String):String
@@ -408,9 +411,7 @@ class FlxAnimateFrames extends FlxAtlasFrames
 		var stageInstance:Null<SymbolInstanceJson> = animData.AN.STI;
 		frames.matrix = (stageInstance != null) ? stageInstance.MX.toMatrix() : new FlxMatrix();
 
-		// clear the temp data crap
-		frames._symbolDictionary = null;
-		frames._libraryList = [];
+		// 【PE 对齐】保留 SD 与 library 列表：主时间轴没引用到的符号，之后 getSymbol / addBySymbol 还能建出来
 		frames._settings = null;
 
 		_cachedAtlases.set(path, frames);

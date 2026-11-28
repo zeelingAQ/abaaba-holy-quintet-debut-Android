@@ -39,7 +39,9 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 
 		this.libraryItem = parent.getSymbol(data.SN);
 		this.matrix = data.MX.toMatrix();
-		this.firstFrame = data.FF;
+		// FF 是符号时间轴上的绝对帧号，符号内部已经归一化，这里一起减掉起点
+		var symbolStart:Int = (libraryItem != null) ? libraryItem.timeline.startIndex : 0;
+		this.firstFrame = FlxMath.maxInt(data.FF - symbolStart, 0);
 		this.isColored = false;
 
 		this.loopType = switch (data.LP)

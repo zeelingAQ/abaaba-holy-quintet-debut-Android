@@ -121,9 +121,8 @@ class FlxAnimateController extends FlxAnimationController
 			final numFrames = #if (flixel >= "5.4.0") numFrames #else curAnim.timeline.frameCount #end;
 			if (numFrames > 0)
 			{
-				// 【底层修复】绝对不取模！保留真实帧号（如 377）
-				if (frame < 0) frame = 0;
-				if (frame >= curAnim.timeline.frameCount) frame = curAnim.timeline.frameCount - 1;
+				// 帧号归一化后统一是 0 基，正常取模即可
+				frame = frame % numFrames;
 
 				_animate.timeline = curAnim.timeline;
 				_animate.timeline.currentFrame = frame; 

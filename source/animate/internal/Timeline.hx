@@ -25,6 +25,11 @@ class Timeline implements IFlxDestroyable
 	public var name:String;
 	public var currentFrame:Int;
 	public var frameCount:Int;
+	/**
+	 * 这个时间轴原始 JSON 里的起始帧号（正常图集是 0）。
+	 * 图层内部的帧号加载时已经减掉它，这里留着给嵌套符号的 firstFrame 换算用。
+	 */
+	public var startIndex:Int = 0;
 	public var parent(default, null):FlxAnimateFrames;
 
 	var _layerMap:Map<String, Layer>;
@@ -370,6 +375,9 @@ class Timeline implements IFlxDestroyable
 
 			if (layer.frameCount > frameCount)
 				frameCount = layer.frameCount;
+
+			if (layer.startIndex > 0 && (startIndex == 0 || layer.startIndex < startIndex))
+				startIndex = layer.startIndex;
 		}
 
 		_bounds = getWholeBounds(false, _bounds);
