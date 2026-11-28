@@ -98,8 +98,16 @@ class FlxAnimateController extends FlxAnimationController
 	{
 		if (!hasAnimateAtlas) return;
 		var symbol = _animate.library.getSymbol(symbolName);
-		if (symbol == null) return;
+		if (symbol == null)
+		{
+			// [oot fix] 找不到同名符号时不再静默 return，退回主时间轴，至少让 indices 能对上帧号
+			animate.OotLog.log('[AC] ' + name + ' 缺符号 "' + symbolName + '" → 退回主时间轴');
+			addByTimelineIndices(name, _animate.library.timeline, indices, frameRate, looped, flipX, flipY);
+			return;
+		}
 		frameRate ??= getDefaultFramerate();
+		if (indices.length > 0 && indices[indices.length - 1] >= symbol.timeline.frameCount)
+			animate.OotLog.log('[AC] ' + name + ' idx最大=' + indices[indices.length - 1] + ' 但符号只有 ' + symbol.timeline.frameCount + ' 帧');
 		var anim = new FlxAnimateAnimation(this, name, indices, frameRate, looped, flipX, flipY);
 		anim.timeline = symbol.timeline;
 		_animations.set(name, anim);
@@ -122,7 +130,7 @@ class FlxAnimateController extends FlxAnimationController
 			if (numFrames > 0)
 			{
 				if (frame > 250 && frame < 540)
-					animate.OotLog.log('[AC] ' + curAnim.name + ' f=' + frame + '/' + curAnim.timeline.frameCount + ' af=' + (_animate.frames == null ? -1 : _animate.frames.numFrames));
+					animate.OotLog.log('[AC2] ' + curAnim.name + ' f=' + frame + '/' + curAnim.timeline.frameCount + ' af=' + (_animate.frames == null ? -1 : _animate.frames.numFrames));
 				// 【底层修复】绝对不取模！保留真实帧号（如 377）
 				if (frame < 0) frame = 0;
 				if (frame >= curAnim.timeline.frameCount) frame = curAnim.timeline.frameCount - 1;

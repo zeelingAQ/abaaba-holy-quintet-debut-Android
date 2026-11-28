@@ -99,7 +99,7 @@ class SymbolInstance extends AnimateElement<SymbolInstanceJson>
 			case LoopType.LOOP:
 				frameIndex = FlxMath.wrap(frameIndex, 0, frameCount - 1);
 			case LoopType.PLAY_ONCE:
-				// [oot fix] 原来是 minInt，会把“只播一次”的符号钳死在末帧
+				// [oot fix] 原来是 minInt，会把"只播一次"的符号钳死在末帧
 				frameIndex = FlxMath.wrap(frameIndex, 0, frameCount - 1);
 			case LoopType.SINGLE_FRAME:
 				frameIndex = firstFrame;
